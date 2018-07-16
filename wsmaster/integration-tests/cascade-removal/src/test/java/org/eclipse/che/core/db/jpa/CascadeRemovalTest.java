@@ -11,7 +11,6 @@
  */
 package org.eclipse.che.core.db.jpa;
 
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.eclipse.che.core.db.jpa.TestObjectsFactory.createAccount;
 import static org.eclipse.che.core.db.jpa.TestObjectsFactory.createK8sRuntimeState;
@@ -66,6 +65,7 @@ import org.eclipse.che.api.workspace.activity.WorkspaceExpiration;
 import org.eclipse.che.api.workspace.activity.inject.WorkspaceActivityModule;
 import org.eclipse.che.api.workspace.server.DefaultWorkspaceLockService;
 import org.eclipse.che.api.workspace.server.DefaultWorkspaceStatusCache;
+import org.eclipse.che.api.workspace.server.InternalEnvironmentProvider;
 import org.eclipse.che.api.workspace.server.WorkspaceManager;
 import org.eclipse.che.api.workspace.server.WorkspaceRuntimes;
 import org.eclipse.che.api.workspace.server.WorkspaceSharedPool;
@@ -226,16 +226,14 @@ public class CascadeRemovalTest {
                     spy(
                         new WorkspaceRuntimes(
                             mock(EventService.class),
-                            emptyMap(),
+                            mock(InternalEnvironmentProvider.class),
                             infra,
                             mock(WorkspaceSharedPool.class),
                             mock(WorkspaceDao.class),
                             mock(DBInitializer.class),
                             mock(ProbeScheduler.class),
                             new DefaultWorkspaceStatusCache(),
-                            new DefaultWorkspaceLockService(),
-                            emptyMap(),
-                            null));
+                            new DefaultWorkspaceLockService()));
                 when(wR.hasRuntime(anyString())).thenReturn(false);
                 bind(WorkspaceRuntimes.class).toInstance(wR);
                 bind(AccountManager.class);

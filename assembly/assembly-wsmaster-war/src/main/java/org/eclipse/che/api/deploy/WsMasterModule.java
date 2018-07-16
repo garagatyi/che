@@ -44,6 +44,10 @@ import org.eclipse.che.api.user.server.jpa.JpaPreferenceDao;
 import org.eclipse.che.api.user.server.jpa.JpaUserDao;
 import org.eclipse.che.api.user.server.spi.PreferenceDao;
 import org.eclipse.che.api.user.server.spi.UserDao;
+import org.eclipse.che.api.workspace.server.InternalEnvironmentProvider;
+import org.eclipse.che.api.workspace.server.InternalEnvironmentProviderFactory;
+import org.eclipse.che.api.workspace.server.PropertyBasedToggles;
+import org.eclipse.che.api.workspace.server.Toggles;
 import org.eclipse.che.api.workspace.server.WorkspaceLockService;
 import org.eclipse.che.api.workspace.server.WorkspaceStatusCache;
 import org.eclipse.che.api.workspace.server.hc.ServersCheckerFactory;
@@ -265,6 +269,8 @@ public class WsMasterModule extends AbstractModule {
     bind(org.eclipse.che.api.user.server.AppStatesPreferenceCleaner.class);
 
     MapBinder.newMapBinder(binder(), String.class, WorkspaceNextApplier.class);
+    bind(InternalEnvironmentProvider.class).toProvider(InternalEnvironmentProviderFactory.class);
+    bind(Toggles.class).to(PropertyBasedToggles.class);
   }
 
   private void configureSingleUserMode(Map<String, String> persistenceProperties) {
