@@ -139,23 +139,9 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
     Map<String, ServerConfig> externalServers = new HashMap<>();
     Map<String, ServerConfig> secureServers = new HashMap<>();
 
-    servers.forEach(
-        (key, value) -> {
-          if ("true".equals(value.getAttributes().get(INTERNAL_SERVER_ATTRIBUTE))) {
-            // Server is internal. It doesn't make sense to make an it secure since
-            // it is available only within workspace servers
-            internalServers.put(key, value);
-          } else {
-            // Server is external. Check if it should be secure or not
-            if ("true".equals(value.getAttributes().get(ServerConfig.SECURE_SERVER_ATTRIBUTE))) {
-              secureServers.put(key, value);
-            } else {
-              externalServers.put(key, value);
-            }
-          }
-        });
+    sortServers(servers, internalServers, externalServers, secureServers);
 
-    Collection<ServicePort> servicePorts = exposePorts(servers.values());
+    Collection<ServicePort> servicePorts = exposePortsInContainer(servers.values());
     Service service =
         new ServerServiceBuilder()
             .withName(generate(SERVER_PREFIX, SERVER_UNIQUE_PART_SIZE) + '-' + machineName)
@@ -185,6 +171,29 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
     }
   }
 
+  private void sortServers(
+      Map<String, ? extends ServerConfig> servers,
+      Map<String, ServerConfig> internalServers,
+      Map<String, ServerConfig> externalServers,
+      Map<String, ServerConfig> secureServers) {
+
+    servers.forEach(
+        (key, value) -> {
+          if ("true".equals(value.getAttributes().get(INTERNAL_SERVER_ATTRIBUTE))) {
+            // Server is internal. It doesn't make sense to make it secure since
+            // it is available only within workspace servers
+            internalServers.put(key, value);
+          } else {
+            // Server is external. Check if it should be secure or not
+            if ("true".equals(value.getAttributes().get(ServerConfig.SECURE_SERVER_ATTRIBUTE))) {
+              secureServers.put(key, value);
+            } else {
+              externalServers.put(key, value);
+            }
+          }
+        });
+  }
+
   private Map<String, ServerConfig> match(
       Map<String, ServerConfig> servers, ServicePort servicePort) {
     int port = servicePort.getTargetPort().getIntVal();
@@ -195,7 +204,7 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
         .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private Collection<ServicePort> exposePorts(Collection<? extends ServerConfig> serverConfig) {
+  private Collection<ServicePort> exposePortsInContainer(Collection<? extends ServerConfig> serverConfig) {
     Map<String, ServicePort> exposedPorts = new HashMap<>();
     Set<String> portsToExpose =
         serverConfig.stream().map(ServerConfig::getPort).collect(Collectors.toSet());
