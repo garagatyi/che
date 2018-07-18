@@ -159,6 +159,7 @@ public class KubernetesWorkspaceNextApplier implements WorkspaceNextApplier {
 
   private Map<String, ? extends ServerConfig> toWorkspaceServers(
       List<ChePluginEndpoint> endpoints) {
+    // TODO add an attribute to a server
     return endpoints
         .stream()
         .collect(
