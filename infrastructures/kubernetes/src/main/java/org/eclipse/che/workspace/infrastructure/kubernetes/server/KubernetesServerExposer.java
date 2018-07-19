@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -242,7 +243,7 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
               .withMachineName(machineName)
               .withSelectorEntry(CHE_ORIGINAL_NAME_LABEL, pod.getMetadata().getName())
               .withPorts(new ArrayList<>(servicePorts))
-              .withServers(servers)
+              .withServers(Collections.emptyMap())// TODO internal discoverable servers should be here only
               .build());
     }
     return services;
