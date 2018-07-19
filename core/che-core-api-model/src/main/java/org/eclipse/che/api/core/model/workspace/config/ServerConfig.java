@@ -36,6 +36,8 @@ public interface ServerConfig {
    */
   String SECURE_SERVER_ATTRIBUTE = "secure";
 
+  String DISCOVERABLE = "discoverable";
+
   /**
    * Port used by server.
    *

@@ -168,7 +168,8 @@ public class KubernetesWorkspaceNextApplier implements WorkspaceNextApplier {
 
   private ServerConfigImpl toServer(ChePluginEndpoint endpoint) {
     Map<String, String> attributes = new HashMap<>();
-    attributes.put("internal", Boolean.toString(!endpoint.isPublic()));
+    attributes.put(ServerConfig.INTERNAL_SERVER_ATTRIBUTE, Boolean.toString(!endpoint.isPublic()));
+    attributes.put(ServerConfig.DISCOVERABLE, "true");
     endpoint
         .getAttributes()
         .forEach(

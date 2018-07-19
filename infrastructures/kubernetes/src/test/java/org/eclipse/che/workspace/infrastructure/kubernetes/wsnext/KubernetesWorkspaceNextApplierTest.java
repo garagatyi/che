@@ -151,7 +151,7 @@ public class KubernetesWorkspaceNextApplierTest {
 
     InternalMachineConfig machineConfig = getOneAndOnlyMachine(internalEnvironment);
     assertEquals(
-        machineConfig.getServers(), expectedSingleServer(80, "test-port", emptyMap(), true));
+        machineConfig.getServers(), expectedSingleServer(80, "test-port", emptyMap(), true, true));
   }
 
   @Test
@@ -165,7 +165,16 @@ public class KubernetesWorkspaceNextApplierTest {
     assertEquals(
         machineConfig.getServers(),
         expectedTwoServers(
-            80, "test-port", emptyMap(), true, 8090, "another-test-port", emptyMap(), false));
+            80,
+            "test-port",
+            emptyMap(),
+            true,
+            true,
+            8090,
+            "another-test-port",
+            emptyMap(),
+            false,
+            true));
   }
 
   @Test
@@ -179,7 +188,16 @@ public class KubernetesWorkspaceNextApplierTest {
     assertEquals(
         machineConfig.getServers(),
         expectedTwoServers(
-            80, "test-port/http", emptyMap(), true, 80, "test-port/ws", emptyMap(), true));
+            80,
+            "test-port/http",
+            emptyMap(),
+            true,
+            true,
+            80,
+            "test-port/ws",
+            emptyMap(),
+            true,
+            true));
   }
 
   @Test
@@ -197,7 +215,7 @@ public class KubernetesWorkspaceNextApplierTest {
     assertEquals(
         machineConfig.getServers(),
         expectedSingleServer(
-            443, "test-port", singletonMap("attr1", "value1"), true, "https", "/path/1"));
+            443, "test-port", singletonMap("attr1", "value1"), true, "https", "/path/1", true));
   }
 
   @Test
@@ -276,9 +294,13 @@ public class KubernetesWorkspaceNextApplierTest {
 
   @SuppressWarnings("SameParameterValue")
   private Map<String, ServerConfig> expectedSingleServer(
-      int port, String portName, Map<String, String> attributes, boolean isExternal) {
+      int port,
+      String portName,
+      Map<String, String> attributes,
+      boolean isExternal,
+      Boolean discoverable) {
     Map<String, ServerConfig> servers = new HashMap<>();
-    addExpectedServer(servers, port, portName, attributes, isExternal, null, null);
+    addExpectedServer(servers, port, portName, attributes, isExternal, null, null, discoverable);
     return servers;
   }
 
@@ -289,9 +311,11 @@ public class KubernetesWorkspaceNextApplierTest {
       Map<String, String> attributes,
       boolean isExternal,
       String protocol,
-      String path) {
+      String path,
+      Boolean discoverable) {
     Map<String, ServerConfig> servers = new HashMap<>();
-    addExpectedServer(servers, port, portName, attributes, isExternal, protocol, path);
+    addExpectedServer(
+        servers, port, portName, attributes, isExternal, protocol, path, discoverable);
     return servers;
   }
 
@@ -301,13 +325,16 @@ public class KubernetesWorkspaceNextApplierTest {
       String portName,
       Map<String, String> attributes,
       boolean isExternal,
+      Boolean discoverable,
       int port2,
       String portName2,
       Map<String, String> attributes2,
-      boolean isExternal2) {
+      boolean isExternal2,
+      Boolean discoverable2) {
     Map<String, ServerConfig> servers = new HashMap<>();
-    addExpectedServer(servers, port, portName, attributes, isExternal, null, null);
-    addExpectedServer(servers, port2, portName2, attributes2, isExternal2, null, null);
+    addExpectedServer(servers, port, portName, attributes, isExternal, null, null, discoverable);
+    addExpectedServer(
+        servers, port2, portName2, attributes2, isExternal2, null, null, discoverable2);
     return servers;
   }
 
@@ -318,9 +345,13 @@ public class KubernetesWorkspaceNextApplierTest {
       Map<String, String> attributes,
       boolean isExternal,
       String protocol,
-      String path) {
+      String path,
+      Boolean discoverable) {
     Map<String, String> serverAttributes = new HashMap<>(attributes);
     serverAttributes.put("internal", Boolean.toString(!isExternal));
+    if (discoverable != null) {
+      serverAttributes.put(ServerConfig.DISCOVERABLE, Boolean.toString(discoverable));
+    }
     servers.put(
         portName,
         new ServerConfigImpl(Integer.toString(port) + "/tcp", protocol, path, serverAttributes));

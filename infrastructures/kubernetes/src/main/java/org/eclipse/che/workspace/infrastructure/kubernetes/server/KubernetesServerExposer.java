@@ -27,7 +27,9 @@ import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,6 +43,7 @@ import org.eclipse.che.workspace.infrastructure.kubernetes.provision.UniqueNames
 import org.eclipse.che.workspace.infrastructure.kubernetes.server.external.ExternalServerExposerStrategy;
 import org.eclipse.che.workspace.infrastructure.kubernetes.server.secure.SecureServerExposer;
 
+// TODO do we need to adapt javadocs?
 /**
  * Helps to modify {@link KubernetesEnvironment} to make servers that are configured by {@link
  * ServerConfig} publicly or workspace-wide accessible.
@@ -138,13 +141,28 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
     ServersSorter serversSorter = new ServersSorter(servers);
     serversSorter.sort();
 
-    Collection<ServicePort> servicePorts = exposePortsInContainer(servers.values());
+    Collection<ServicePort> servicePortsWithoutDiscovery =
+        exposePortsInContainer(serversSorter.serversWithoutDiscovery.values());
+    Collection<ServicePort> servicePortsWithDiscovery =
+        exposePortsInContainer(serversSorter.serversWithDiscovery.values());
 
-    Service service = createService(servicePorts, serversSorter.internalServers);
-    String serviceName = service.getMetadata().getName();
-    k8sEnv.getServices().put(serviceName, service);
+    Service serviceForServersWithoutDiscovery =
+        createServiceWithoutDiscovery(
+            servicePortsWithoutDiscovery, serversSorter.internalServersWithoutDiscovery);
+    List<Service> servicesWithDiscovery =
+        createServicesWithDiscovery(servicePortsWithDiscovery, serversSorter.serversWithDiscovery);
+    addServicesToEnvironment(serviceForServersWithoutDiscovery, servicesWithDiscovery);
 
-    publishPorts(service, servicePorts, serversSorter.externalServers, serversSorter.secureServers);
+    publishPorts(
+        serviceForServersWithoutDiscovery,
+        servicePortsWithoutDiscovery,
+        serversSorter.externalServers,
+        serversSorter.secureServers);
+    publishPorts(
+        servicesWithDiscovery,
+        servicePortsWithDiscovery,
+        serversSorter.externalServers,
+        serversSorter.secureServers);
   }
 
   private Map<String, ServerConfig> match(
@@ -195,7 +213,7 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
     return exposedPorts.values();
   }
 
-  private Service createService(
+  private Service createServiceWithoutDiscovery(
       Collection<ServicePort> servicePorts, Map<String, ServerConfig> servers) {
 
     return new ServerServiceBuilder()
@@ -205,6 +223,23 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
         .withPorts(new ArrayList<>(servicePorts))
         .withServers(servers)
         .build();
+  }
+
+  private List<Service> createServicesWithDiscovery(
+      Collection<ServicePort> servicePorts, Map<String, ServerConfig> servers) {
+    List<Service> services = new ArrayList<>();
+    // TODO validate that there is no collision in services names
+    for (Entry<String, ServerConfig> server : servers.entrySet()) {
+      services.add(
+          new ServerServiceBuilder()
+              .withName(server.getKey())
+              .withMachineName(machineName)
+              .withSelectorEntry(CHE_ORIGINAL_NAME_LABEL, pod.getMetadata().getName())
+              .withPorts(new ArrayList<>(servicePorts))
+              .withServers(servers)
+              .build());
+    }
+    return services;
   }
 
   private void publishPorts(
@@ -232,12 +267,46 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
     }
   }
 
+  private void publishPorts(
+      List<Service> services,
+      Collection<ServicePort> servicePorts,
+      Map<String, ServerConfig> externalServers,
+      Map<String, ServerConfig> secureServers)
+      throws InfrastructureException {
+
+    for (Service service : services) {
+      publishPorts(service, servicePorts, externalServers, secureServers);
+    }
+  }
+
+  private void addServicesToEnvironment(
+      Service serviceForServersWithoutDiscovery, List<Service> servicesWithDiscovery) {
+    // TODO validate that there is no collision
+    for (Service service : servicesWithDiscovery) {
+      String serviceName = service.getMetadata().getName();
+      k8sEnv.getServices().put(serviceName, service);
+    }
+    String serviceName = serviceForServersWithoutDiscovery.getMetadata().getName();
+    k8sEnv.getServices().put(serviceName, serviceForServersWithoutDiscovery);
+  }
+
   private static class ServersSorter {
     private Map<String, ? extends ServerConfig> incomingServers;
-    Map<String, ServerConfig> internalServers = new HashMap<>();
+    // Servers that need to be accessible to all the agents/sidecars inside of a workspace.
+    // These servers are not accessible outside of workspace runtime on the infrastructure level.
+    Map<String, ServerConfig> internalServersWithoutDiscovery = new HashMap<>();
+    // Servers that need to be exposed to the outside world.
+    // Don't include external secure servers.
     Map<String, ServerConfig> externalServers = new HashMap<>();
+    // Servers that need to be exposed to the outside world (external) and
+    // need to be protected from unauthenticated access
     Map<String, ServerConfig> secureServers = new HashMap<>();
+    // Both internal and external servers that needs service discovery based on a server name
+    Map<String, ServerConfig> serversWithDiscovery = new HashMap<>();
+    // Both internal and external servers that don't need service discovery based on a server name
+    Map<String, ServerConfig> serversWithoutDiscovery = new HashMap<>();
 
+    // TODO use lists where maps are not needed
     public ServersSorter(Map<String, ? extends ServerConfig> servers) {
       this.incomingServers = servers;
     }
@@ -248,7 +317,7 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
             if ("true".equals(value.getAttributes().get(INTERNAL_SERVER_ATTRIBUTE))) {
               // Server is internal. It doesn't make sense to make it secure since
               // it is available only within workspace servers
-              internalServers.put(key, value);
+              internalServersWithoutDiscovery.put(key, value);
             } else {
               // Server is external. Check if it should be secure or not
               if ("true".equals(value.getAttributes().get(ServerConfig.SECURE_SERVER_ATTRIBUTE))) {
@@ -256,6 +325,11 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
               } else {
                 externalServers.put(key, value);
               }
+            }
+            if ("true".equals(value.getAttributes().get(ServerConfig.DISCOVERABLE))) {
+              serversWithDiscovery.put(key, value);
+            } else {
+              serversWithoutDiscovery.put(key, value);
             }
           });
     }
