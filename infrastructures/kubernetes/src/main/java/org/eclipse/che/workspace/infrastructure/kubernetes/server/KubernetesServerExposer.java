@@ -146,12 +146,13 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
     Collection<ServicePort> servicePortsWithDiscovery =
         exposePortsInContainer(serversSorter.serversWithDiscovery.values());
 
-    Service serviceForServersWithoutDiscovery =
-        createServiceWithoutDiscovery(
+    List<Service> serviceForServersWithoutDiscovery =
+        createServicesWithoutDiscovery(
             servicePortsWithoutDiscovery, serversSorter.internalServersWithoutDiscovery);
+    addServicesToEnvironment(serviceForServersWithoutDiscovery);
     List<Service> servicesWithDiscovery =
         createServicesWithDiscovery(servicePortsWithDiscovery, serversSorter.serversWithDiscovery);
-    addServicesToEnvironment(serviceForServersWithoutDiscovery, servicesWithDiscovery);
+    addServicesToEnvironment(servicesWithDiscovery);
 
     publishPorts(
         serviceForServersWithoutDiscovery,
@@ -213,16 +214,21 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
     return exposedPorts.values();
   }
 
-  private Service createServiceWithoutDiscovery(
+  private List<Service> createServicesWithoutDiscovery(
       Collection<ServicePort> servicePorts, Map<String, ServerConfig> servers) {
 
-    return new ServerServiceBuilder()
-        .withName(generate(SERVER_PREFIX, SERVER_UNIQUE_PART_SIZE) + '-' + machineName)
-        .withMachineName(machineName)
-        .withSelectorEntry(CHE_ORIGINAL_NAME_LABEL, pod.getMetadata().getName())
-        .withPorts(new ArrayList<>(servicePorts))
-        .withServers(servers)
-        .build();
+    List<Service> result = new ArrayList<>();
+    if (!servicePorts.isEmpty()) {
+      result.add(new ServerServiceBuilder()
+          .withName(generate(SERVER_PREFIX, SERVER_UNIQUE_PART_SIZE) + '-' + machineName)
+          .withMachineName(machineName)
+          .withSelectorEntry(CHE_ORIGINAL_NAME_LABEL, pod.getMetadata().getName())
+          .withPorts(new ArrayList<>(servicePorts))
+          .withServers(servers)
+          .build());
+
+    }
+    return result;
   }
 
   private List<Service> createServicesWithDiscovery(
@@ -279,15 +285,12 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
     }
   }
 
-  private void addServicesToEnvironment(
-      Service serviceForServersWithoutDiscovery, List<Service> servicesWithDiscovery) {
+  private void addServicesToEnvironment(List<Service> servicesWithDiscovery) {
     // TODO validate that there is no collision
     for (Service service : servicesWithDiscovery) {
       String serviceName = service.getMetadata().getName();
       k8sEnv.getServices().put(serviceName, service);
     }
-    String serviceName = serviceForServersWithoutDiscovery.getMetadata().getName();
-    k8sEnv.getServices().put(serviceName, serviceForServersWithoutDiscovery);
   }
 
   private static class ServersSorter {
