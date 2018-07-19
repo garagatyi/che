@@ -157,7 +157,8 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
         .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private Collection<ServicePort> exposePortsInContainer(Collection<? extends ServerConfig> serverConfig) {
+  private Collection<ServicePort> exposePortsInContainer(
+      Collection<? extends ServerConfig> serverConfig) {
     Map<String, ServicePort> exposedPorts = new HashMap<>();
     Set<String> portsToExpose =
         serverConfig.stream().map(ServerConfig::getPort).collect(Collectors.toSet());
@@ -194,8 +195,8 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
     return exposedPorts.values();
   }
 
-  private Service createService(Collection<ServicePort> servicePorts,
-      Map<String, ServerConfig> servers) {
+  private Service createService(
+      Collection<ServicePort> servicePorts, Map<String, ServerConfig> servers) {
 
     return new ServerServiceBuilder()
         .withName(generate(SERVER_PREFIX, SERVER_UNIQUE_PART_SIZE) + '-' + machineName)
@@ -206,9 +207,12 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
         .build();
   }
 
-  private void publishPorts(Service service, Collection<ServicePort> servicePorts,
+  private void publishPorts(
+      Service service,
+      Collection<ServicePort> servicePorts,
       Map<String, ServerConfig> externalServers,
-      Map<String, ServerConfig> secureServers) throws InfrastructureException {
+      Map<String, ServerConfig> secureServers)
+      throws InfrastructureException {
 
     String serviceName = service.getMetadata().getName();
     for (ServicePort servicePort : servicePorts) {
