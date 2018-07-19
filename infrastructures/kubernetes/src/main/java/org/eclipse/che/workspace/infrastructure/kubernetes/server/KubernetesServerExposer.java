@@ -142,42 +142,21 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
     sortServers(servers, internalServers, externalServers, secureServers);
 
     Collection<ServicePort> servicePorts = exposePortsInContainer(servers.values());
-    Service service =
-        new ServerServiceBuilder()
-            .withName(generate(SERVER_PREFIX, SERVER_UNIQUE_PART_SIZE) + '-' + machineName)
-            .withMachineName(machineName)
-            .withSelectorEntry(CHE_ORIGINAL_NAME_LABEL, pod.getMetadata().getName())
-            .withPorts(new ArrayList<>(servicePorts))
-            .withServers(internalServers)
-            .build();
 
+    Service service = createService(servicePorts, internalServers);
     String serviceName = service.getMetadata().getName();
     k8sEnv.getServices().put(serviceName, service);
 
-    for (ServicePort servicePort : servicePorts) {
-      // expose service port related external servers if exist
-      Map<String, ServerConfig> matchedExternalServers = match(externalServers, servicePort);
-      if (!matchedExternalServers.isEmpty()) {
-        externalServerExposer.expose(
-            k8sEnv, machineName, serviceName, servicePort, matchedExternalServers);
-      }
-
-      // expose service port related secure servers if exist
-      Map<String, ServerConfig> matchedSecureServers = match(secureServers, servicePort);
-      if (!matchedSecureServers.isEmpty()) {
-        secureServerExposer.expose(
-            k8sEnv, machineName, serviceName, servicePort, matchedSecureServers);
-      }
-    }
+    publishPorts(service, servicePorts, externalServers, secureServers);
   }
 
   private void sortServers(
-      Map<String, ? extends ServerConfig> servers,
+      Map<String, ? extends ServerConfig> incomingServers,
       Map<String, ServerConfig> internalServers,
       Map<String, ServerConfig> externalServers,
       Map<String, ServerConfig> secureServers) {
 
-    servers.forEach(
+    incomingServers.forEach(
         (key, value) -> {
           if ("true".equals(value.getAttributes().get(INTERNAL_SERVER_ATTRIBUTE))) {
             // Server is internal. It doesn't make sense to make it secure since
@@ -213,7 +192,7 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
       String[] portProtocol = portToExpose.split("/");
       int port = parseInt(portProtocol[0]);
       String protocol = portProtocol.length > 1 ? portProtocol[1].toUpperCase() : "TCP";
-      Optional<ContainerPort> exposedOpt =
+      Optional<ContainerPort> alreadyExposedOpt =
           container
               .getPorts()
               .stream()
@@ -221,8 +200,8 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
               .findAny();
 
       ContainerPort containerPort;
-      if (exposedOpt.isPresent()) {
-        containerPort = exposedOpt.get();
+      if (alreadyExposedOpt.isPresent()) {
+        containerPort = alreadyExposedOpt.get();
       } else {
         containerPort =
             new ContainerPortBuilder().withContainerPort(port).withProtocol(protocol).build();
@@ -239,5 +218,39 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
               .build());
     }
     return exposedPorts.values();
+  }
+
+  private Service createService(Collection<ServicePort> servicePorts,
+      Map<String, ServerConfig> servers) {
+
+    return new ServerServiceBuilder()
+        .withName(generate(SERVER_PREFIX, SERVER_UNIQUE_PART_SIZE) + '-' + machineName)
+        .withMachineName(machineName)
+        .withSelectorEntry(CHE_ORIGINAL_NAME_LABEL, pod.getMetadata().getName())
+        .withPorts(new ArrayList<>(servicePorts))
+        .withServers(servers)
+        .build();
+  }
+
+  private void publishPorts(Service service, Collection<ServicePort> servicePorts,
+      Map<String, ServerConfig> externalServers,
+      Map<String, ServerConfig> secureServers) throws InfrastructureException {
+
+    String serviceName = service.getMetadata().getName();
+    for (ServicePort servicePort : servicePorts) {
+      // expose service port related external servers if exist
+      Map<String, ServerConfig> matchedExternalServers = match(externalServers, servicePort);
+      if (!matchedExternalServers.isEmpty()) {
+        externalServerExposer.expose(
+            k8sEnv, machineName, serviceName, servicePort, matchedExternalServers);
+      }
+
+      // expose service port related secure servers if exist
+      Map<String, ServerConfig> matchedSecureServers = match(secureServers, servicePort);
+      if (!matchedSecureServers.isEmpty()) {
+        secureServerExposer.expose(
+            k8sEnv, machineName, serviceName, servicePort, matchedSecureServers);
+      }
+    }
   }
 }
