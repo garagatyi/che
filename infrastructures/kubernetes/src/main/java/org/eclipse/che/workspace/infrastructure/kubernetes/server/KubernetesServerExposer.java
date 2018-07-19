@@ -135,42 +135,16 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
    * @see UniqueNamesProvisioner#provision(KubernetesEnvironment, RuntimeIdentity)
    */
   public void expose(Map<String, ? extends ServerConfig> servers) throws InfrastructureException {
-    Map<String, ServerConfig> internalServers = new HashMap<>();
-    Map<String, ServerConfig> externalServers = new HashMap<>();
-    Map<String, ServerConfig> secureServers = new HashMap<>();
-
-    sortServers(servers, internalServers, externalServers, secureServers);
+    ServersSorter serversSorter = new ServersSorter(servers);
+    serversSorter.sort();
 
     Collection<ServicePort> servicePorts = exposePortsInContainer(servers.values());
 
-    Service service = createService(servicePorts, internalServers);
+    Service service = createService(servicePorts, serversSorter.internalServers);
     String serviceName = service.getMetadata().getName();
     k8sEnv.getServices().put(serviceName, service);
 
-    publishPorts(service, servicePorts, externalServers, secureServers);
-  }
-
-  private void sortServers(
-      Map<String, ? extends ServerConfig> incomingServers,
-      Map<String, ServerConfig> internalServers,
-      Map<String, ServerConfig> externalServers,
-      Map<String, ServerConfig> secureServers) {
-
-    incomingServers.forEach(
-        (key, value) -> {
-          if ("true".equals(value.getAttributes().get(INTERNAL_SERVER_ATTRIBUTE))) {
-            // Server is internal. It doesn't make sense to make it secure since
-            // it is available only within workspace servers
-            internalServers.put(key, value);
-          } else {
-            // Server is external. Check if it should be secure or not
-            if ("true".equals(value.getAttributes().get(ServerConfig.SECURE_SERVER_ATTRIBUTE))) {
-              secureServers.put(key, value);
-            } else {
-              externalServers.put(key, value);
-            }
-          }
-        });
+    publishPorts(service, servicePorts, serversSorter.externalServers, serversSorter.secureServers);
   }
 
   private Map<String, ServerConfig> match(
@@ -251,6 +225,35 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
         secureServerExposer.expose(
             k8sEnv, machineName, serviceName, servicePort, matchedSecureServers);
       }
+    }
+  }
+
+  private static class ServersSorter {
+    private Map<String, ? extends ServerConfig> incomingServers;
+    Map<String, ServerConfig> internalServers = new HashMap<>();
+    Map<String, ServerConfig> externalServers = new HashMap<>();
+    Map<String, ServerConfig> secureServers = new HashMap<>();
+
+    public ServersSorter(Map<String, ? extends ServerConfig> servers) {
+      this.incomingServers = servers;
+    }
+
+    public void sort() {
+      incomingServers.forEach(
+          (key, value) -> {
+            if ("true".equals(value.getAttributes().get(INTERNAL_SERVER_ATTRIBUTE))) {
+              // Server is internal. It doesn't make sense to make it secure since
+              // it is available only within workspace servers
+              internalServers.put(key, value);
+            } else {
+              // Server is external. Check if it should be secure or not
+              if ("true".equals(value.getAttributes().get(ServerConfig.SECURE_SERVER_ATTRIBUTE))) {
+                secureServers.put(key, value);
+              } else {
+                externalServers.put(key, value);
+              }
+            }
+          });
     }
   }
 }
