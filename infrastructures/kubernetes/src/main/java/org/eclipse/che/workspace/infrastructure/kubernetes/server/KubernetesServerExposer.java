@@ -27,7 +27,9 @@ import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -135,54 +137,44 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
    * @see UniqueNamesProvisioner#provision(KubernetesEnvironment, RuntimeIdentity)
    */
   public void expose(Map<String, ? extends ServerConfig> servers) throws InfrastructureException {
-    Map<String, ServerConfig> internalServers = new HashMap<>();
+    Map<String, ServerConfig> internalServersWithoutDiscovery = new HashMap<>();
+    Map<String, ServerConfig> serversWithDiscovery = new HashMap<>();
     Map<String, ServerConfig> externalServers = new HashMap<>();
     Map<String, ServerConfig> secureServers = new HashMap<>();
+    List<ServerConfig> serversWithoutDiscovery = new ArrayList<>();
+    sortServers(servers,
+        internalServersWithoutDiscovery,
+        serversWithDiscovery,
+        externalServers,
+        secureServers,
+        serversWithoutDiscovery);
 
-    sortServers(servers, internalServers, externalServers, secureServers);
+    Collection<ServicePort> servicePortsWithoutDiscovery = exposePortsInContainer(serversWithoutDiscovery);
+    Collection<ServicePort> servicePortsWithDiscovery = exposePortsInContainer(serversWithDiscovery.values());
 
-    Collection<ServicePort> servicePorts = exposePortsInContainer(servers.values());
-    Service service =
-        new ServerServiceBuilder()
-            .withName(generate(SERVER_PREFIX, SERVER_UNIQUE_PART_SIZE) + '-' + machineName)
-            .withMachineName(machineName)
-            .withSelectorEntry(CHE_ORIGINAL_NAME_LABEL, pod.getMetadata().getName())
-            .withPorts(new ArrayList<>(servicePorts))
-            .withServers(internalServers)
-            .build();
+    Service serviceForServersWithoutDiscovery = createServiceWithoutDiscovery(servicePortsWithoutDiscovery, internalServersWithoutDiscovery);
+    List<Service> servicesWithDiscovery = createServicesWithDiscovery(servicePortsWithDiscovery, serversWithDiscovery);
+    addServicesToEnvironment(servicesWithDiscovery, serviceForServersWithoutDiscovery);
 
-    String serviceName = service.getMetadata().getName();
-    k8sEnv.getServices().put(serviceName, service);
-
-    for (ServicePort servicePort : servicePorts) {
-      // expose service port related external servers if exist
-      Map<String, ServerConfig> matchedExternalServers = match(externalServers, servicePort);
-      if (!matchedExternalServers.isEmpty()) {
-        externalServerExposer.expose(
-            k8sEnv, machineName, serviceName, servicePort, matchedExternalServers);
-      }
-
-      // expose service port related secure servers if exist
-      Map<String, ServerConfig> matchedSecureServers = match(secureServers, servicePort);
-      if (!matchedSecureServers.isEmpty()) {
-        secureServerExposer.expose(
-            k8sEnv, machineName, serviceName, servicePort, matchedSecureServers);
-      }
-    }
+    publishPorts(serviceForServersWithoutDiscovery, servicePortsWithoutDiscovery, externalServers, secureServers);
+    publishPorts(servicesWithDiscovery, servicePortsWithDiscovery, externalServers, secureServers);
   }
 
   private void sortServers(
-      Map<String, ? extends ServerConfig> servers,
-      Map<String, ServerConfig> internalServers,
+      Map<String, ? extends ServerConfig> incomingServers,
+      Map<String, ServerConfig> internalServersWithoutDiscovery,
+      Map<String, ServerConfig> serversWithDiscovery,
       Map<String, ServerConfig> externalServers,
-      Map<String, ServerConfig> secureServers) {
+      Map<String, ServerConfig> secureServers,
+      List<ServerConfig> serversWithoutDiscovery) {
 
-    servers.forEach(
+    // TODO sort servers with dedicated services
+    incomingServers.forEach(
         (key, value) -> {
           if ("true".equals(value.getAttributes().get(INTERNAL_SERVER_ATTRIBUTE))) {
             // Server is internal. It doesn't make sense to make it secure since
             // it is available only within workspace servers
-            internalServers.put(key, value);
+            internalServersWithoutDiscovery.put(key, value);
           } else {
             // Server is external. Check if it should be secure or not
             if ("true".equals(value.getAttributes().get(ServerConfig.SECURE_SERVER_ATTRIBUTE))) {
@@ -213,7 +205,7 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
       String[] portProtocol = portToExpose.split("/");
       int port = parseInt(portProtocol[0]);
       String protocol = portProtocol.length > 1 ? portProtocol[1].toUpperCase() : "TCP";
-      Optional<ContainerPort> exposedOpt =
+      Optional<ContainerPort> alreadyExposedOpt =
           container
               .getPorts()
               .stream()
@@ -221,8 +213,8 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
               .findAny();
 
       ContainerPort containerPort;
-      if (exposedOpt.isPresent()) {
-        containerPort = exposedOpt.get();
+      if (alreadyExposedOpt.isPresent()) {
+        containerPort = alreadyExposedOpt.get();
       } else {
         containerPort =
             new ContainerPortBuilder().withContainerPort(port).withProtocol(protocol).build();
@@ -239,5 +231,77 @@ public class KubernetesServerExposer<T extends KubernetesEnvironment> {
               .build());
     }
     return exposedPorts.values();
+  }
+
+  private void publishPorts(List<Service> services,
+      Collection<ServicePort> servicePorts,
+      Map<String, ServerConfig> externalServers,
+      Map<String, ServerConfig> secureServers) throws InfrastructureException {
+
+    for (Service service : services) {
+      publishPorts(service, servicePorts, externalServers, secureServers);
+    }
+  }
+
+  private void publishPorts(Service service, Collection<ServicePort> servicePorts,
+      Map<String, ServerConfig> externalServers,
+      Map<String, ServerConfig> secureServers) throws InfrastructureException {
+
+    String serviceName = service.getMetadata().getName();
+    for (ServicePort servicePort : servicePorts) {
+      // expose service port related external servers if exist
+      Map<String, ServerConfig> matchedExternalServers = match(externalServers, servicePort);
+      // TODO if external and secure???? would it go into both?
+      if (!matchedExternalServers.isEmpty()) {
+        externalServerExposer.expose(
+            k8sEnv, machineName, serviceName, servicePort, matchedExternalServers);
+      }
+
+      // expose service port related secure servers if exist
+      Map<String, ServerConfig> matchedSecureServers = match(secureServers, servicePort);
+      if (!matchedSecureServers.isEmpty()) {
+        secureServerExposer.expose(
+            k8sEnv, machineName, serviceName, servicePort, matchedSecureServers);
+      }
+    }
+  }
+
+  private void addServicesToEnvironment(List<Service> servicesWithDiscovery,
+      Service serviceForServersWithoutDiscovery) {
+    // TODO validate that there is no collision
+    for (Service service : servicesWithDiscovery) {
+      String serviceName = service.getMetadata().getName();
+      k8sEnv.getServices().put(serviceName, service);
+    }
+    String serviceName = serviceForServersWithoutDiscovery.getMetadata().getName();
+    k8sEnv.getServices().put(serviceName, serviceForServersWithoutDiscovery);
+  }
+
+  private List<Service> createServicesWithDiscovery(Collection<ServicePort> servicePorts,
+      Map<String, ServerConfig> servers) {
+    List<Service> services = new ArrayList<>();
+    // TODO validate that there is no collision in services names
+    for (Entry<String, ServerConfig> server : servers.entrySet()) {
+      services.add(new ServerServiceBuilder()
+          .withName(server.getKey())
+          .withMachineName(machineName)
+          .withSelectorEntry(CHE_ORIGINAL_NAME_LABEL, pod.getMetadata().getName())
+          .withPorts(new ArrayList<>(servicePorts))
+          .withServers(servers)
+          .build());
+    }
+    return services;
+  }
+
+  private Service createServiceWithoutDiscovery(Collection<ServicePort> servicePorts,
+      Map<String, ServerConfig> servers) {
+
+    return new ServerServiceBuilder()
+        .withName(generate(SERVER_PREFIX, SERVER_UNIQUE_PART_SIZE) + '-' + machineName)
+        .withMachineName(machineName)
+        .withSelectorEntry(CHE_ORIGINAL_NAME_LABEL, pod.getMetadata().getName())
+        .withPorts(new ArrayList<>(servicePorts))
+        .withServers(servers)
+        .build();
   }
 }
