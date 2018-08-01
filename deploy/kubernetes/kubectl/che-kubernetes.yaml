@@ -73,6 +73,7 @@ items:
     CHE_INFRA_KUBERNETES_INGRESS_DOMAIN: "192.168.99.100.nip.io"
     CHE_INFRA_KUBERNETES_SERVER__STRATEGY: "default-host"
     CHE_WORKSPACE_FEATURE_API: "http://marketplace:80"
+    CHE_PLUGINS__TOOLING: "false"
 - apiVersion: extensions/v1beta1
   kind: Ingress
   metadata:
@@ -276,8 +277,13 @@ items:
               configMapKeyRef:
                 key: CHE_WORKSPACE_FEATURE_API
                 name: che
+          - name: CHE_PLUGINS__TOOLING
+            valueFrom:
+              configMapKeyRef:
+                key: CHE_PLUGINS__TOOLING
+                name: che
           image: eclipse/che-server:nightly
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
               path: /api/system/state

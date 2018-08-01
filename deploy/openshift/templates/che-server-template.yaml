@@ -148,6 +148,8 @@ objects:
                 optional: true
           - name: CHE_WORKSPACE_FEATURE_API
             value: "http://marketplace:80"
+          - name: CHE_PLUGINS__TOOLING
+            value: "${CHE_PLUGINS__TOOLING}"
           image: ${IMAGE_CHE}:${CHE_VERSION}
           imagePullPolicy: "${PULL_POLICY}"
           livenessProbe:
@@ -287,6 +289,10 @@ parameters:
   displayName: GitHub Client Secret
   description: GitHub oAuth app client servet. Applicable to Che single user only!
   value: ''
+- name: CHE_PLUGINS__TOOLING
+  displayName: Enable Che plugin tooling
+  description: Whether to allow Che plugins based tooling flow in workspaces
+  value: 'false'
 labels:
   app: che
   template: che

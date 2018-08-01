@@ -28,7 +28,7 @@ import org.eclipse.che.api.workspace.server.spi.environment.InternalEnvironmentF
  */
 public class WorkspaceEnvironmentFactoryProvider implements Provider<WorkspaceEnvironmentFactory> {
 
-  public static final String CHE_PLUGINS_TOOLING_TOGGLE = "che_plugins_tooling";
+  public static final String CHE_PLUGINS_TOOLING_TOGGLE = "plugins_tooling";
   private final Toggles toggles;
   private final WorkspaceEnvironmentFactory classicProvider;
   private final ChePluginsBasedWorkspaceEnvironmentFactory sidecarBasedProvider;
