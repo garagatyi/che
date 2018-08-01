@@ -44,13 +44,14 @@ import org.eclipse.che.api.user.server.jpa.JpaPreferenceDao;
 import org.eclipse.che.api.user.server.jpa.JpaUserDao;
 import org.eclipse.che.api.user.server.spi.PreferenceDao;
 import org.eclipse.che.api.user.server.spi.UserDao;
-import org.eclipse.che.api.workspace.server.InternalEnvironmentProvider;
-import org.eclipse.che.api.workspace.server.InternalEnvironmentProviderFactory;
 import org.eclipse.che.api.workspace.server.PropertyBasedToggles;
 import org.eclipse.che.api.workspace.server.Toggles;
+import org.eclipse.che.api.workspace.server.WorkspaceEnvironmentFactory;
+import org.eclipse.che.api.workspace.server.WorkspaceEnvironmentFactoryProvider;
 import org.eclipse.che.api.workspace.server.WorkspaceLockService;
 import org.eclipse.che.api.workspace.server.WorkspaceStatusCache;
 import org.eclipse.che.api.workspace.server.hc.ServersCheckerFactory;
+import org.eclipse.che.api.workspace.server.sidecartooling.ChePluginsApplier;
 import org.eclipse.che.api.workspace.server.spi.provision.InstallerConfigProvisioner;
 import org.eclipse.che.api.workspace.server.spi.provision.InternalEnvironmentProvisioner;
 import org.eclipse.che.api.workspace.server.spi.provision.ProjectsVolumeForWsAgentProvisioner;
@@ -69,7 +70,6 @@ import org.eclipse.che.api.workspace.server.spi.provision.env.WorkspaceIdEnvVarP
 import org.eclipse.che.api.workspace.server.spi.provision.env.WorkspaceMavenServerJavaOptsEnvVariableProvider;
 import org.eclipse.che.api.workspace.server.stack.StackLoader;
 import org.eclipse.che.api.workspace.server.token.MachineTokenProvider;
-import org.eclipse.che.api.workspace.server.wsnext.WorkspaceNextApplier;
 import org.eclipse.che.commons.auth.token.ChainedTokenExtractor;
 import org.eclipse.che.commons.auth.token.RequestTokenExtractor;
 import org.eclipse.che.core.db.DBTermination;
@@ -268,8 +268,8 @@ public class WsMasterModule extends AbstractModule {
 
     bind(org.eclipse.che.api.user.server.AppStatesPreferenceCleaner.class);
 
-    MapBinder.newMapBinder(binder(), String.class, WorkspaceNextApplier.class);
-    bind(InternalEnvironmentProvider.class).toProvider(InternalEnvironmentProviderFactory.class);
+    MapBinder.newMapBinder(binder(), String.class, ChePluginsApplier.class);
+    bind(WorkspaceEnvironmentFactory.class).toProvider(WorkspaceEnvironmentFactoryProvider.class);
     bind(Toggles.class).to(PropertyBasedToggles.class);
   }
 

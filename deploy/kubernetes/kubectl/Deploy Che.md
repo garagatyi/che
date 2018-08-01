@@ -35,5 +35,5 @@ and clean redeploy of Che.
 - Check Che pod status until it become `Running`: `kubectl get --namespace=che pods`
 
 ### Workspace Next:
-There is a file `wsnext/feature-api.yaml` which contains apache service that hosts Workspace.Next files. It is needed to test Workspace.Next.
-To use it call `kubectl apply --namespace=che -f wsnext/feature-api.yaml` and Che will be able to use Workspace.Next flow.
+There is a file `wsnext/feature-api.yaml` which contains apache service that hosts Che plugins based tooling files. It is needed to test tooling based on a Che plugins concept.
+To use it call `kubectl apply --namespace=che -f wsnext/feature-api.yaml` and Che will be able to use Che plugins tooling flow.

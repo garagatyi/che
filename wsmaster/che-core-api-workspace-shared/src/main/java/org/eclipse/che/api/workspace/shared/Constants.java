@@ -70,8 +70,8 @@ public final class Constants {
    */
   public static final String ERROR_MESSAGE_ATTRIBUTE_NAME = "errorMessage";
   /**
-   * Contains Workspace.Next features list that should be added to a workspace. Should be set/read
-   * from {@link Workspace#getAttributes}.
+   * Contains Che plugins list that should be added to a workspace. Should be set/read from {@link
+   * Workspace#getAttributes}.
    *
    * <p>Value is comma separated list of features in a format: '< feature1Name >/< feature1Version
    * >,< feature2Name >/< feature2Version >' <br>

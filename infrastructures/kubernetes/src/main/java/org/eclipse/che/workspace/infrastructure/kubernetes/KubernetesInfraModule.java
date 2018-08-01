@@ -24,13 +24,13 @@ import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import java.util.Map;
 import org.eclipse.che.api.system.server.ServiceTermination;
+import org.eclipse.che.api.workspace.server.sidecartooling.ChePluginsApplier;
+import org.eclipse.che.api.workspace.server.sidecartooling.InternalEnvironmentConverter;
 import org.eclipse.che.api.workspace.server.spi.RuntimeInfrastructure;
 import org.eclipse.che.api.workspace.server.spi.environment.InternalEnvironmentFactory;
 import org.eclipse.che.api.workspace.server.spi.provision.env.CheApiExternalEnvVarProvider;
 import org.eclipse.che.api.workspace.server.spi.provision.env.CheApiInternalEnvVarProvider;
 import org.eclipse.che.api.workspace.server.spi.provision.env.EnvVarProvider;
-import org.eclipse.che.api.workspace.server.wsnext.InternalEnvironmentConverter;
-import org.eclipse.che.api.workspace.server.wsnext.WorkspaceNextApplier;
 import org.eclipse.che.workspace.infrastructure.docker.environment.dockerimage.DockerImageEnvironment;
 import org.eclipse.che.workspace.infrastructure.docker.environment.dockerimage.DockerImageEnvironmentFactory;
 import org.eclipse.che.workspace.infrastructure.kubernetes.bootstrapper.KubernetesBootstrapperFactory;
@@ -56,8 +56,8 @@ import org.eclipse.che.workspace.infrastructure.kubernetes.server.external.Singl
 import org.eclipse.che.workspace.infrastructure.kubernetes.server.secure.DefaultSecureServersFactory;
 import org.eclipse.che.workspace.infrastructure.kubernetes.server.secure.SecureServerExposerFactory;
 import org.eclipse.che.workspace.infrastructure.kubernetes.server.secure.SecureServerExposerFactoryProvider;
-import org.eclipse.che.workspace.infrastructure.kubernetes.wsnext.DockerimageToK8sInternalEnvConverter;
-import org.eclipse.che.workspace.infrastructure.kubernetes.wsnext.KubernetesWorkspaceNextApplier;
+import org.eclipse.che.workspace.infrastructure.kubernetes.sidecartooling.DockerimageToK8sInternalEnvConverter;
+import org.eclipse.che.workspace.infrastructure.kubernetes.sidecartooling.KubernetesChePluginsApplier;
 
 /** @author Sergii Leshchenko */
 public class KubernetesInfraModule extends AbstractModule {
@@ -123,9 +123,9 @@ public class KubernetesInfraModule extends AbstractModule {
 
     install(new JpaKubernetesRuntimeCacheModule());
 
-    MapBinder<String, WorkspaceNextApplier> wsNext =
-        MapBinder.newMapBinder(binder(), String.class, WorkspaceNextApplier.class);
-    wsNext.addBinding(KubernetesEnvironment.TYPE).to(KubernetesWorkspaceNextApplier.class);
+    MapBinder<String, ChePluginsApplier> pluginsAppliers =
+        MapBinder.newMapBinder(binder(), String.class, ChePluginsApplier.class);
+    pluginsAppliers.addBinding(KubernetesEnvironment.TYPE).to(KubernetesChePluginsApplier.class);
 
     bind(new TypeLiteral<SecureServerExposerFactory<KubernetesEnvironment>>() {})
         .toProvider(

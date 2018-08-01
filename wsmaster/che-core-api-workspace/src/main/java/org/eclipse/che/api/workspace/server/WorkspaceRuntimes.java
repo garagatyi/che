@@ -94,7 +94,7 @@ public class WorkspaceRuntimes {
   private final WorkspaceSharedPool sharedPool;
   private final WorkspaceDao workspaceDao;
   private final AtomicBoolean isStartRefused;
-  private final InternalEnvironmentProvider environmentProvider;
+  private final WorkspaceEnvironmentFactory environmentProvider;
   private final RuntimeInfrastructure infrastructure;
   private final ProbeScheduler probeScheduler;
   // Unique identifier for this workspace runtimes
@@ -104,7 +104,7 @@ public class WorkspaceRuntimes {
   WorkspaceRuntimes(
       ConcurrentMap<String, InternalRuntime<?>> runtimes,
       EventService eventService,
-      InternalEnvironmentProvider environmentProvider,
+      WorkspaceEnvironmentFactory environmentProvider,
       RuntimeInfrastructure infra,
       WorkspaceSharedPool sharedPool,
       WorkspaceDao workspaceDao,
@@ -128,7 +128,7 @@ public class WorkspaceRuntimes {
   @Inject
   public WorkspaceRuntimes(
       EventService eventService,
-      InternalEnvironmentProvider environmentProvider,
+      WorkspaceEnvironmentFactory environmentProvider,
       RuntimeInfrastructure infra,
       WorkspaceSharedPool sharedPool,
       WorkspaceDao workspaceDao,

@@ -259,7 +259,7 @@ To allow creating workspace OpenShift resources in personal OpenShift accounts, 
 ```
 
 
-## Workspace.Next
+## Che plugins sidecar tooling
 
-There is a file `../../kubernetes/kubectl/wsnext/feature-api.yaml` which contains apache service that hosts Workspace.Next files. It is needed to test Workspace.Next.
-To use it call `oc apply -f ../../kubernetes/kubectl/wsnext/feature-api.yaml` and Che will be able to use Workspace.Next flow.
+There is a file `../../kubernetes/kubectl/wsnext/feature-api.yaml` which contains apache service that hosts Che plugins files. It is needed to test Che plugins sidecar tooling.
+To use it call `oc apply -f ../../kubernetes/kubectl/wsnext/feature-api.yaml` and Che will be able to use Che plugins tooling flow.

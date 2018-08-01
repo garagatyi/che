@@ -107,7 +107,7 @@ public class WorkspaceRuntimesTest {
     runtimes =
         new WorkspaceRuntimes(
             eventService,
-            new InternalEnvironmentProvider(ImmutableMap.of(TEST_ENVIRONMENT_TYPE, testEnvFactory)),
+            new WorkspaceEnvironmentFactory(ImmutableMap.of(TEST_ENVIRONMENT_TYPE, testEnvFactory)),
             infrastructure,
             sharedPool,
             workspaceDao,
@@ -196,7 +196,7 @@ public class WorkspaceRuntimesTest {
     WorkspaceRuntimes localRuntimes =
         new WorkspaceRuntimes(
             localEventService,
-            new InternalEnvironmentProvider(ImmutableMap.of(TEST_ENVIRONMENT_TYPE, testEnvFactory)),
+            new WorkspaceEnvironmentFactory(ImmutableMap.of(TEST_ENVIRONMENT_TYPE, testEnvFactory)),
             infrastructure,
             sharedPool,
             workspaceDao,
@@ -255,7 +255,7 @@ public class WorkspaceRuntimesTest {
         new WorkspaceRuntimes(
             runtimesStorage,
             eventService,
-            new InternalEnvironmentProvider(ImmutableMap.of(TEST_ENVIRONMENT_TYPE, testEnvFactory)),
+            new WorkspaceEnvironmentFactory(ImmutableMap.of(TEST_ENVIRONMENT_TYPE, testEnvFactory)),
             infrastructure,
             sharedPool,
             workspaceDao,
