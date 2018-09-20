@@ -13,6 +13,7 @@ package org.eclipse.che.workspace.infrastructure.kubernetes.wsplugins;
 
 import static com.google.common.collect.ImmutableMap.of;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
 import static org.eclipse.che.api.core.model.workspace.config.MachineConfig.MEMORY_LIMIT_ATTRIBUTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -48,7 +49,8 @@ public class MachineResolverTest {
     endpoints = new ArrayList<>();
     cheContainer = new CheContainer();
     container = new Container();
-    resolver = new MachineResolver(container, cheContainer, DEFAULT_MEM_LIMIT, endpoints);
+    resolver =
+        new MachineResolver(container, cheContainer, DEFAULT_MEM_LIMIT, endpoints, emptyMap());
   }
 
   @Test
