@@ -67,6 +67,7 @@ public abstract class BrokerEnvironmentFactory<E extends KubernetesEnvironment> 
   private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
   private final String cheWebsocketEndpoint;
+  private final String outputPropagatorEndpoint;
   private final String pluginBrokerImage;
   private final String brokerPullPolicy;
   private final AgentAuthEnableEnvVarProvider authEnableEnvVarProvider;
@@ -75,11 +76,13 @@ public abstract class BrokerEnvironmentFactory<E extends KubernetesEnvironment> 
   @Inject
   public BrokerEnvironmentFactory(
       @Named("che.websocket.endpoint") String cheWebsocketEndpoint,
+      @Named("che.workspace.output_endpoint") String outputPropagatorEndpoint,
       @Named("che.workspace.plugin_broker.image") String pluginBrokerImage,
       @Named("che.workspace.plugin_broker.pull_policy") String brokerPullPolicy,
       AgentAuthEnableEnvVarProvider authEnableEnvVarProvider,
       MachineTokenEnvVarProvider machineTokenEnvVarProvider) {
     this.cheWebsocketEndpoint = cheWebsocketEndpoint;
+    this.outputPropagatorEndpoint = outputPropagatorEndpoint;
     this.pluginBrokerImage = pluginBrokerImage;
     this.brokerPullPolicy = brokerPullPolicy;
     this.authEnableEnvVarProvider = authEnableEnvVarProvider;
@@ -135,6 +138,8 @@ public abstract class BrokerEnvironmentFactory<E extends KubernetesEnvironment> 
                 CONF_FOLDER + "/" + CONFIG_FILE,
                 "-push-endpoint",
                 cheWebsocketEndpoint,
+//                "-push-logs-endpoint",
+//                outputPropagatorEndpoint,
                 "-runtime-id",
                 String.format(
                     "%s:%s:%s",

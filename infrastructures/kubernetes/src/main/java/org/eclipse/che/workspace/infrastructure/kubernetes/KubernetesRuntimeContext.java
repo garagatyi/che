@@ -37,7 +37,7 @@ public class KubernetesRuntimeContext<T extends KubernetesEnvironment> extends R
 
   @Inject
   public KubernetesRuntimeContext(
-      @Named("che.websocket.endpoint") String cheWebsocketEndpoint,
+      @Named("che.workspace.output_endpoint") String outputPropagatorEndpoint,
       KubernetesNamespaceFactory namespaceFactory,
       KubernetesRuntimeFactory<T> runtimeFactory,
       KubernetesRuntimeStateCache runtimeStatuses,
@@ -48,7 +48,7 @@ public class KubernetesRuntimeContext<T extends KubernetesEnvironment> extends R
     super(kubernetesEnvironment, identity, infrastructure);
     this.namespaceFactory = namespaceFactory;
     this.runtimeFactory = runtimeFactory;
-    this.websocketOutputEndpoint = cheWebsocketEndpoint;
+    this.websocketOutputEndpoint = outputPropagatorEndpoint;
     this.runtimeStatuses = runtimeStatuses;
   }
 

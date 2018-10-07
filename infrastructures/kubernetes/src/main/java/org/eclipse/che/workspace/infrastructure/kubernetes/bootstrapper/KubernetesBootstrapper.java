@@ -74,6 +74,7 @@ public class KubernetesBootstrapper extends AbstractBootstrapper {
       @Assisted KubernetesNamespace namespace,
       @Assisted StartSynchronizer startSynchronizer,
       @Named("che.websocket.endpoint") String cheWebsocketEndpoint,
+      @Named("che.workspace.output_endpoint") String outputPropagatorEndpoint,
       @Named("che.infra.kubernetes.bootstrapper.binary_url") String bootstrapperBinaryUrl,
       @Named("che.infra.kubernetes.bootstrapper.installer_timeout_sec") int installerTimeoutSeconds,
       @Named("che.infra.kubernetes.bootstrapper.server_check_period_sec")
@@ -83,7 +84,7 @@ public class KubernetesBootstrapper extends AbstractBootstrapper {
     super(
         kubernetesMachine.getName(),
         runtimeIdentity,
-        cheWebsocketEndpoint,
+        outputPropagatorEndpoint,
         cheWebsocketEndpoint,
         eventService);
     this.bootstrapperBinaryUrl = bootstrapperBinaryUrl;
@@ -188,6 +189,7 @@ public class KubernetesBootstrapper extends AbstractBootstrapper {
     }
   }
 
+  // TODO put logs to output propagator
   private void exec(BiConsumer<String, String> outputConsumer, String... command)
       throws InfrastructureException {
     namespace

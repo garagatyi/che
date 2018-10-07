@@ -39,12 +39,14 @@ public class OpenshiftBrokerEnvironmentFactory
   @Inject
   public OpenshiftBrokerEnvironmentFactory(
       @Named("che.websocket.endpoint") String cheWebsocketEndpoint,
+      @Named("che.workspace.output_endpoint") String outputPropagatorEndpoint,
       @Named("che.workspace.plugin_broker.image") String pluginBrokerImage,
       @Named("che.workspace.plugin_broker.pull_policy") String brokerPullPolicy,
       AgentAuthEnableEnvVarProvider authEnableEnvVarProvider,
       MachineTokenEnvVarProvider machineTokenEnvVarProvider) {
     super(
         cheWebsocketEndpoint,
+        outputPropagatorEndpoint,
         pluginBrokerImage,
         brokerPullPolicy,
         authEnableEnvVarProvider,

@@ -33,7 +33,7 @@ public class OpenShiftRuntimeContext extends KubernetesRuntimeContext<OpenShiftE
 
   @Inject
   public OpenShiftRuntimeContext(
-      @Named("che.websocket.endpoint") String cheWebsocketEndpoint,
+      @Named("che.workspace.output_endpoint") String outputPropagatorEndpoint,
       OpenShiftProjectFactory projectFactory,
       OpenShiftRuntimeFactory runtimeFactory,
       KubernetesRuntimeStateCache runtimeStatuses,
@@ -42,7 +42,7 @@ public class OpenShiftRuntimeContext extends KubernetesRuntimeContext<OpenShiftE
       @Assisted RuntimeInfrastructure infrastructure)
       throws ValidationException, InfrastructureException {
     super(
-        cheWebsocketEndpoint,
+        outputPropagatorEndpoint,
         projectFactory,
         null, // should not be used by super class since getRuntime method is overridden
         runtimeStatuses,
