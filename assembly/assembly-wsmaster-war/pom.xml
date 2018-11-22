@@ -79,76 +79,94 @@
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>bootstrapper</artifactId>
             <type>tar.gz</type>
             <classifier>linux_amd64</classifier>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>che-exec-agent-client</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>exec-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>git-credentials-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ls-camel-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ls-clang-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ls-csharp-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ls-golang-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ls-java-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ls-json-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ls-php-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ls-python-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ls-typescript-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ls-yaml-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>ssh-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>terminal-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>unison-agent</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.core</groupId>
             <artifactId>che-core-api-auth</artifactId>
@@ -161,6 +179,7 @@
             <groupId>org.eclipse.che.core</groupId>
             <artifactId>che-core-api-factory</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.core</groupId>
             <artifactId>che-core-api-installer</artifactId>
@@ -241,6 +260,7 @@
             <groupId>org.eclipse.che.core</groupId>
             <artifactId>che-core-tracing-web</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.core</groupId>
             <artifactId>wsagent</artifactId>
@@ -253,14 +273,17 @@
             <groupId>org.eclipse.che.infrastructure</groupId>
             <artifactId>infrastructure-openshift</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.infrastructure.docker</groupId>
             <artifactId>docker-auth</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.infrastructure.docker</groupId>
             <artifactId>docker-client</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.infrastructure.docker</groupId>
             <artifactId>infrastructure-docker</artifactId>
@@ -345,14 +368,17 @@
             <groupId>org.eclipse.che.multiuser</groupId>
             <artifactId>che-multiuser-sql-schema</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-github-factory-resolver</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-github-oauth2</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-github-shared</artifactId>
@@ -361,6 +387,7 @@
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-machine-ext-server</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-url-factory</artifactId>
@@ -473,6 +500,7 @@
                             <skip>true</skip>
                         </configuration>
                     </execution>
+                    <!--TODO-->
                     <execution>
                         <id>copy-bootstrapper</id>
                         <phase>process-resources</phase>

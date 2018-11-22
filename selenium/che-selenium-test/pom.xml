@@ -147,6 +147,7 @@
             <artifactId>che-multiuser-api-permission</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-github-server</artifactId>

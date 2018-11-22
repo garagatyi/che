@@ -135,10 +135,12 @@
             <groupId>org.eclipse.che.core</groupId>
             <artifactId>che-core-db</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.infrastructure.docker</groupId>
             <artifactId>docker-auth</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.infrastructure.docker</groupId>
             <artifactId>docker-environment</artifactId>

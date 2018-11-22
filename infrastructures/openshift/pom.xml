@@ -91,6 +91,7 @@
             <groupId>org.eclipse.che.infrastructure</groupId>
             <artifactId>infrastructure-kubernetes</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.infrastructure.docker</groupId>
             <artifactId>docker-environment</artifactId>

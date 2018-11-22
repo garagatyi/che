@@ -25,8 +25,15 @@
     <packaging>pom</packaging>
     <name>Che Infrastructures Parent</name>
     <modules>
-        <module>docker</module>
         <module>openshift</module>
         <module>kubernetes</module>
     </modules>
+    <profiles>
+        <profile>
+            <id>che6</id>
+            <modules>
+                <module>docker</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

@@ -107,6 +107,7 @@
             <groupId>org.eclipse.che.multiuser</groupId>
             <artifactId>che-multiuser-api-permission-shared</artifactId>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-github-shared</artifactId>
@@ -144,6 +145,7 @@
             <artifactId>che-core-commons-inject</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-github-server</artifactId>

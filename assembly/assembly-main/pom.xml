@@ -23,6 +23,7 @@
     <packaging>pom</packaging>
     <name>Che IDE :: Assemblies Tomcat</name>
     <dependencies>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>assembly-ide-war</artifactId>
@@ -33,6 +34,7 @@
             <artifactId>assembly-workspace-loader-war</artifactId>
             <type>war</type>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>assembly-wsagent-server</artifactId>
@@ -43,18 +45,21 @@
             <artifactId>assembly-wsmaster-war</artifactId>
             <type>war</type>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>bootstrapper</artifactId>
             <type>zip</type>
             <classifier>linux_amd64</classifier>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>exec-agent</artifactId>
             <type>tar.gz</type>
             <classifier>linux_amd64</classifier>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che</groupId>
             <artifactId>terminal-agent</artifactId>
@@ -91,11 +96,13 @@
             <artifactId>che-tomcat8-slf4j-logback</artifactId>
             <type>zip</type>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.ls.jdt</groupId>
             <artifactId>jdt.ls.extension.product</artifactId>
             <type>tar.gz</type>
         </dependency>
+        <!--TODO-->
         <dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-sdk-tools</artifactId>
