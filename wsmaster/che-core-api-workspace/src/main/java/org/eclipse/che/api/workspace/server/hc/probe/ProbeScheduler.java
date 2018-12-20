@@ -30,6 +30,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import org.eclipse.che.api.core.model.workspace.WorkspaceStatus;
 import org.eclipse.che.api.workspace.server.hc.probe.ProbeResult.ProbeStatus;
+import org.eclipse.che.commons.schedule.ScheduleDelay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,6 +189,11 @@ public class ProbeScheduler {
     }
   }
 
+  @ScheduleDelay(initialDelay = 5, delay = 5, unit = TimeUnit.MINUTES)
+  private void cleanupTimeoutTasks() {
+    timeouts.purge();
+  }
+
   private class Task implements Runnable {
     private final ProbeFactory probeFactory;
     private final Consumer<ProbeResult> probeResultConsumer;
@@ -209,9 +215,11 @@ public class ProbeScheduler {
         return;
       }
       Probe probe = probeFactory.get();
+      TimeoutProbeTask timeoutProbeTask = new TimeoutProbeTask(probe);
       timeouts.schedule(
-          new TimeoutProbeTask(probe), TimeUnit.SECONDS.toMillis(probeConfig.getTimeoutSeconds()));
+          timeoutProbeTask, TimeUnit.SECONDS.toMillis(probeConfig.getTimeoutSeconds()));
       boolean success = probe.probe();
+      timeoutProbeTask.cancel();
       if (success) {
         // current success increases successes count and clears failures count
         successes++;
