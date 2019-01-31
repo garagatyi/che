@@ -17,12 +17,10 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.testng.Assert;
-import org.testng.annotations.Test;
 
 /** @author andrew00x */
 public class ProcessUtilTest {
 
-  @Test
   public void testKill() throws Exception {
     final Process p = Runtime.getRuntime().exec(new String[] {"ping", "google.com"});
     final List<String> stdout = new ArrayList<>();
