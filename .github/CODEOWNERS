@@ -22,6 +22,8 @@ core/** @skabashnyuk
 
 # workspace runtime infrastructure implementations
 infrastructures/** @garagatyi @sleshchenko
+infrastructures/kubernetes/** @amisevsk
+infrastructures/openshift/** @amisevsk
 
 # multiuser che
 multiuser/api/**  @sleshchenko
