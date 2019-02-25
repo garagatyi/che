@@ -235,7 +235,7 @@
     </dependencies>
     <build>
         <plugins>
-            <!-- Create the test jar -->
+            <!-- Create the test jar TEST -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
