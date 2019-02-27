@@ -209,7 +209,7 @@ public abstract class BrokerEnvironmentFactory<E extends KubernetesEnvironment> 
         .withNewMetadata()
         .withName(configMapName)
         .endMetadata()
-        .withData(singletonMap(CONFIG_FILE, GSON.toJson(pluginsMetas)))
+        .withData(singletonMap(CONFIG_FILE, GSON.toJson(pluginsMetas)))// TODO use jackson
         .build();
   }
 

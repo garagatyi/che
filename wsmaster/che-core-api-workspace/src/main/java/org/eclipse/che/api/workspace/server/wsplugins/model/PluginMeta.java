@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /** @author Oleksandr Garagatyi */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -205,5 +206,66 @@ public class PluginMeta {
 
   public String getLatestUpdateDate() {
     return latestUpdateDate;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof PluginMeta)) {
+      return false;
+    }
+    PluginMeta that = (PluginMeta) o;
+    return Objects.equals(getName(), that.getName()) &&
+        Objects.equals(getId(), that.getId()) &&
+        Objects.equals(getType(), that.getType()) &&
+        Objects.equals(getVersion(), that.getVersion()) &&
+        Objects.equals(getTitle(), that.getTitle()) &&
+        Objects.equals(getDescription(), that.getDescription()) &&
+        Objects.equals(getCategory(), that.getCategory()) &&
+        Objects.equals(getPublisher(), that.getPublisher()) &&
+        Objects.equals(getRepository(), that.getRepository()) &&
+        Objects.equals(getTags(), that.getTags()) &&
+        Objects.equals(getMediaImage(), that.getMediaImage()) &&
+        Objects.equals(getMediaVideo(), that.getMediaVideo()) &&
+        Objects.equals(getFirstPublicationDate(), that.getFirstPublicationDate()) &&
+        Objects.equals(getLatestUpdateDate(), that.getLatestUpdateDate()) &&
+        Objects.equals(getPreview(), that.getPreview()) &&
+        Objects.equals(getIcon(), that.getIcon()) &&
+        Objects.equals(getUrl(), that.getUrl()) &&
+        Objects.equals(getAttributes(), that.getAttributes());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(), getId(), getType(), getVersion(), getTitle(), getDescription(),
+        getCategory(), getPublisher(), getRepository(), getTags(), getMediaImage(), getMediaVideo(),
+        getFirstPublicationDate(), getLatestUpdateDate(), getPreview(), getIcon(), getUrl(),
+        getAttributes());
+  }
+
+  @Override
+  public String toString() {
+    return "PluginMeta{" +
+        "name='" + name + '\'' +
+        ", id='" + id + '\'' +
+        ", type='" + type + '\'' +
+        ", version='" + version + '\'' +
+        ", title='" + title + '\'' +
+        ", description='" + description + '\'' +
+        ", category='" + category + '\'' +
+        ", publisher='" + publisher + '\'' +
+        ", repository='" + repository + '\'' +
+        ", tags=" + tags +
+        ", mediaImage='" + mediaImage + '\'' +
+        ", mediaVideo='" + mediaVideo + '\'' +
+        ", firstPublicationDate='" + firstPublicationDate + '\'' +
+        ", latestUpdateDate='" + latestUpdateDate + '\'' +
+        ", preview='" + preview + '\'' +
+        ", icon='" + icon + '\'' +
+        ", url='" + url + '\'' +
+        ", attributes=" + attributes +
+        '}';
   }
 }

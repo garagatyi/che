@@ -56,6 +56,7 @@ import org.eclipse.che.workspace.infrastructure.kubernetes.server.external.Exter
 import org.eclipse.che.workspace.infrastructure.kubernetes.server.secure.DefaultSecureServersFactory;
 import org.eclipse.che.workspace.infrastructure.kubernetes.server.secure.SecureServerExposerFactory;
 import org.eclipse.che.workspace.infrastructure.kubernetes.server.secure.SecureServerExposerFactoryProvider;
+import org.eclipse.che.workspace.infrastructure.kubernetes.wsplugins.CachePoweredPluginBrokerManager;
 import org.eclipse.che.workspace.infrastructure.kubernetes.wsplugins.KubernetesPluginsToolingApplier;
 import org.eclipse.che.workspace.infrastructure.kubernetes.wsplugins.PluginBrokerManager;
 import org.eclipse.che.workspace.infrastructure.kubernetes.wsplugins.SidecarToolingProvisioner;
@@ -140,8 +141,8 @@ public class OpenShiftInfraModule extends AbstractModule {
     bind(new TypeLiteral<BrokerEnvironmentFactory<OpenShiftEnvironment>>() {})
         .to(OpenshiftBrokerEnvironmentFactory.class);
 
-    bind(PluginBrokerManager.class)
-        .to(new TypeLiteral<PluginBrokerManager<OpenShiftEnvironment>>() {});
+    bind(new TypeLiteral<PluginBrokerManager<OpenShiftEnvironment>>() {})
+        .to(new TypeLiteral<CachePoweredPluginBrokerManager<OpenShiftEnvironment>>() {});
 
     bind(SidecarToolingProvisioner.class)
         .to(new TypeLiteral<SidecarToolingProvisioner<OpenShiftEnvironment>>() {});

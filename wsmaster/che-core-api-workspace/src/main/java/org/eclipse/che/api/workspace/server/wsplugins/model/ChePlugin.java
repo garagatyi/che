@@ -36,6 +36,18 @@ public class ChePlugin extends PluginBase {
   }
 
   @Override
+  public ChePlugin id(String id) {
+    super.id(id);
+    return this;
+  }
+
+  @Override
+  public ChePlugin version(String version) {
+    super.version(version);
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
