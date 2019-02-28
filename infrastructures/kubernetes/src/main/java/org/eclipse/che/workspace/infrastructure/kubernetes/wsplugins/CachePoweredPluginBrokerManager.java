@@ -77,7 +77,8 @@ public class CachePoweredPluginBrokerManager<E extends KubernetesEnvironment> im
         cached.add(plugin);
       }
     }
-
+// TODO do not mix cached and non-cached configs since configs evaluation also download binaries
+    // check that all the plugins were provisioned in the WS since we need binaries there
     List<ChePlugin> nonCachedPlugins = Collections.emptyList();
     if (!nonCachedMetas.isEmpty()) {
       nonCachedPlugins = brokerManager.getTooling(runtimeID,
@@ -87,7 +88,7 @@ public class CachePoweredPluginBrokerManager<E extends KubernetesEnvironment> im
 
       for (ChePlugin nonCachedPlugin : nonCachedPlugins) {
         for (PluginMeta nonCachedMeta : nonCachedMetas) {
-          if (nonCachedMeta.getId().equals(nonCachedPlugin.getId()) && 
+          if (nonCachedMeta.getId().equals(nonCachedPlugin.getId()) &&
           nonCachedMeta.getVersion().equals(nonCachedPlugin.getVersion())) {
             String metaJson = toJson(nonCachedMeta);
 
