@@ -30,6 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
@@ -119,57 +120,63 @@ public class PluginMetaRetriever {
 
     List<PluginFQN> metaFQNs = new ArrayList<>();
     if (!isNullOrEmpty(pluginsAttribute)) {
-      String[] plugins = pluginsAttribute.split(" *, *");
-      if (plugins.length != 0) {
-        Collection<PluginFQN> pluginsFQNs = parsePluginFQNs(plugins);
-        metaFQNs.addAll(pluginsFQNs);
-      }
+      metaFQNs.addAll(parsePluginFQNs(pluginsAttribute));
     }
     if (!isNullOrEmpty(editorAttribute)) {
-      Collection<PluginFQN> editorIdVersionCollection =
-          parsePluginFQNs(editorAttribute.split(" *, *"));
-      if (editorIdVersionCollection.size() > 1) {
+      Collection<PluginFQN> editorsFQNs = parsePluginFQNs(editorAttribute);
+      if (editorsFQNs.size() > 1) {
         throw new InfrastructureException(
             "Multiple editors found in workspace config attributes. "
                 + "It is not supported. Please, use one editor only.");
       }
-      metaFQNs.addAll(editorIdVersionCollection);
+      metaFQNs.addAll(editorsFQNs);
     }
 
     return getMetas(metaFQNs);
   }
 
-  private Collection<PluginFQN> parsePluginFQNs(String... plugins) throws InfrastructureException {
+  private Collection<PluginFQN> parsePluginFQNs(String pluginsAttribute)
+      throws InfrastructureException {
+    String[] plugins = pluginsAttribute.split(" *, *");
+    if (plugins.length == 0) {
+      return Collections.emptyList();
+    }
     List<PluginFQN> collectedFQNs = new ArrayList<>();
     for (String plugin : plugins) {
-      URI repo = null;
-      String idVersionString;
-      final int idVersionTagDelimiter = plugin.lastIndexOf("/");
-      idVersionString = plugin.substring(idVersionTagDelimiter + 1);
-      if (idVersionTagDelimiter > -1) {
-        try {
-          repo = new URI(plugin.substring(0, idVersionTagDelimiter));
-        } catch (URISyntaxException e) {
-          throw new InfrastructureException(
-              "Plugin registry URL is incorrect. Problematic plugin entry:" + plugin);
-        }
-      }
-      String[] idVersion = idVersionString.split(":");
-      if (idVersion.length != 2 || idVersion[0].isEmpty() || idVersion[1].isEmpty()) {
-        throw new InfrastructureException(
-            "Plugin format is illegal. Problematic plugin entry:" + plugin);
-      }
+      PluginFQN pFQN = parsePlugin(plugin);
       if (collectedFQNs
           .stream()
-          .anyMatch(p -> p.getId().equals(idVersion[0]) && p.getVersion().equals(idVersion[1]))) {
+          .anyMatch(
+              p -> p.getId().equals(pFQN.getId()) && p.getVersion().equals(pFQN.getVersion()))) {
         throw new InfrastructureException(
             format(
                 "Invalid Che tooling plugins configuration: plugin %s is duplicated",
-                idVersion[0] + ":" + idVersion[1])); // even if different repos
+                pFQN.getId() + ":" + pFQN.getVersion())); // even if different repos
       }
-      collectedFQNs.add(new PluginFQN(repo, idVersion[0], idVersion[1]));
+      collectedFQNs.add(pFQN);
     }
     return collectedFQNs;
+  }
+
+  private PluginFQN parsePlugin(String plugin) throws InfrastructureException {
+    URI repo = null;
+    String idVersionString;
+    final int idVersionTagDelimiter = plugin.lastIndexOf("/");
+    idVersionString = plugin.substring(idVersionTagDelimiter + 1);
+    if (idVersionTagDelimiter > -1) {
+      try {
+        repo = new URI(plugin.substring(0, idVersionTagDelimiter));
+      } catch (URISyntaxException e) {
+        throw new InfrastructureException(
+            "Plugin registry URL is incorrect. Problematic plugin entry:" + plugin);
+      }
+    }
+    String[] idVersion = idVersionString.split(":");
+    if (idVersion.length != 2 || idVersion[0].isEmpty() || idVersion[1].isEmpty()) {
+      throw new InfrastructureException(
+          "Plugin format is illegal. Problematic plugin entry:" + plugin);
+    }
+    return new PluginFQN(repo, idVersion[0], idVersion[1]);
   }
 
   private Collection<PluginMeta> getMetas(List<PluginFQN> pluginFQNs)
