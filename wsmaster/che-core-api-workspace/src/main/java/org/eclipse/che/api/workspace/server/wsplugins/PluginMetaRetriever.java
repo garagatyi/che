@@ -33,6 +33,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.UriBuilder;
@@ -66,6 +68,17 @@ public class PluginMetaRetriever {
           Constants.CHE_WORKSPACE_PLUGIN_REGISTRY_URL_PROPERTY);
 
   private static final ObjectMapper YAML_PARSER = new ObjectMapper(new YAMLFactory());
+
+  private static final String REGISTRY_AND_PUBLISHER_GROUP = "registryAndPublisher";
+  private static final String VERSION_GROUP = "version";
+  private static final String ID_GROUP = "id";
+  private static final String REGISTRY_GROUP = "registry";
+  private static final String PUBLISHER_GROUP = "publisher";
+  private static final Pattern pluginPattern = Pattern.compile(
+      "(?<" + REGISTRY_AND_PUBLISHER_GROUP + ">\\w+/)?(?<" + ID_GROUP + ">\\w+):(?<" + VERSION_GROUP
+          + ">[\\w.]+)");
+  private static final Pattern registryPublisherPattern = Pattern
+      .compile("(?<registry>http.?//[^?#]+)?(?<publisher>\\w+/)");
 
   private final UriBuilder pluginRegistry;
 
@@ -159,24 +172,31 @@ public class PluginMetaRetriever {
   }
 
   private PluginFQN parsePlugin(String plugin) throws InfrastructureException {
-    URI repo = null;
-    String idVersionString;
-    final int idVersionTagDelimiter = plugin.lastIndexOf("/");
-    idVersionString = plugin.substring(idVersionTagDelimiter + 1);
-    if (idVersionTagDelimiter > -1) {
-      try {
-        repo = new URI(plugin.substring(0, idVersionTagDelimiter));
-      } catch (URISyntaxException e) {
-        throw new InfrastructureException(
-            "Plugin registry URL is incorrect. Problematic plugin entry:" + plugin);
+    Matcher matcher = pluginPattern.matcher(plugin);
+    String registryAndPublisher = matcher.group(REGISTRY_AND_PUBLISHER_GROUP);
+    String id = matcher.group(ID_GROUP);
+    String version = matcher.group(VERSION_GROUP);
+    String publisher = null;
+    URI registry = null;
+
+    if (!isNullOrEmpty(registryAndPublisher)) {
+      // when old notation `registryURL/pluign_ID:version` is used
+      // treat last `/plugins` from registryURL as publisher_ID in new
+      // notation `registryURL:/publisher_ID/plugin_ID:version`
+      Matcher registryPublisherMatcher = registryPublisherPattern.matcher(registryAndPublisher);
+      publisher = registryPublisherMatcher.group(PUBLISHER_GROUP);
+      String registryGroup = registryPublisherMatcher.group(REGISTRY_GROUP);
+      if (!isNullOrEmpty(registryGroup)) {
+        try {
+          registry = new URI(registryGroup);
+        } catch (URISyntaxException e) {
+          throw new InfrastructureException(
+              format("Plugin registry URL '%s' is incorrect. Problematic plugin entry: '%s'", registryGroup, plugin));
+        }
       }
     }
-    String[] idVersion = idVersionString.split(":");
-    if (idVersion.length != 2 || idVersion[0].isEmpty() || idVersion[1].isEmpty()) {
-      throw new InfrastructureException(
-          "Plugin format is illegal. Problematic plugin entry:" + plugin);
-    }
-    return new PluginFQN(repo, idVersion[0], idVersion[1]);
+
+    return new PluginFQN(registry, id, version, publisher);
   }
 
   private Collection<PluginMeta> getMetas(List<PluginFQN> pluginFQNs)
@@ -198,6 +218,9 @@ public class PluginMetaRetriever {
               ? pluginRegistry.clone()
               : UriBuilder.fromUri(pluginFQN.getRegistry());
 
+      if (!isNullOrEmpty(pluginFQN.getPublisher())) {
+        metaURIBuilder.path(pluginFQN.getPublisher());
+      }
       URI metaURI = metaURIBuilder.path(id).path(version).path("meta.yaml").build();
       PluginMeta meta = getBody(metaURI, PluginMeta.class);
       validateMeta(meta, id, version);
